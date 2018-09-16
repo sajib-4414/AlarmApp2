@@ -3,7 +3,9 @@ package gnc.alarmapp2;
 import android.content.Context;
 import android.database.Cursor;
 import android.media.RingtoneManager;
+import android.util.Log;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,5 +24,12 @@ public class RingtoneHelper {
         }
 
         return list;
+    }
+    public static Field[] getListOfRawFiles(){
+        Field[] fields=R.raw.class.getFields();
+//        for(int count=0; count < fields.length; count++){
+//            Log.i("Raw Asset: ", fields[count].getName());
+//        }
+        return fields;
     }
 }

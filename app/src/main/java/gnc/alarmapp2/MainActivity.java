@@ -1,13 +1,11 @@
 package gnc.alarmapp2;
 
-import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
@@ -19,13 +17,9 @@ import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.TimePicker;
-import android.widget.ToggleButton;
 
-import java.util.ArrayList;
+import java.lang.reflect.Field;
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,8 +29,10 @@ public class MainActivity extends AppCompatActivity {
     private static MainActivity inst;
     private TextView alarmTextView, whichRingTone;
     private Switch soundSwitch;
-    private Ringtone ringtone;
+    //private Ringtone ringtone;
+    private int selectedRingtoneResousrceId= -1;
     private Button ringchoser;
+    MediaPlayer mPlayer;
 
     public static MainActivity instance() {
         return inst;
@@ -62,12 +58,8 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
                 if(isChecked == true)
                 {
-                    if(ringtone !=null)
-                    {
-                        if(ringtone.isPlaying())
-                        {
-                            ringtone.stop();
-                        }
+                    if(mPlayer !=null && mPlayer.isPlaying()){
+                        mPlayer.stop();
                     }
 
                 }
@@ -95,20 +87,16 @@ public class MainActivity extends AppCompatActivity {
             alarmManager.set(AlarmManager.RTC, calendar.getTimeInMillis(), pendingIntent);
         } else {
             alarmManager.cancel(pendingIntent);
-            setAlarmText("", null);
-            if(ringtone !=null)
-            {
-                if(ringtone.isPlaying())
-                {
-                    ringtone.stop();
-                }
+            TriggerAlarm("");
+            if(mPlayer !=null && mPlayer.isPlaying()){
+                mPlayer.stop();
             }
 
             Log.d("MyActivity", "Alarm Off");
         }
     }
 
-    public void setAlarmText(String alarmText, Ringtone ringtone) {
+    public void TriggerAlarm(String alarmText) {
         alarmTextView.setText(alarmText);
         if(alarmText.length()==0)
         {
@@ -117,22 +105,31 @@ public class MainActivity extends AppCompatActivity {
         else
         {
             soundSwitch.setVisibility(View.VISIBLE);
+
         }
-        if(ringtone !=null){
-            this.ringtone = ringtone;
+        if(selectedRingtoneResousrceId != -1){
             if(alarmText !=null && alarmText.length()>0)
             {
                 soundSwitch.setVisibility(View.VISIBLE);
+                //play it
+
+                mPlayer = MediaPlayer.create(MainActivity.this, selectedRingtoneResousrceId);
+                mPlayer.start();
             }
         }
     }
 
     private void showDialog()
     {
-        Map<String, String> map = RingtoneHelper.getRingToneList(this);
-        List<String> ringtonesList = new ArrayList<String>(map.keySet());
-        String[] ringtonesArray = new String[ringtonesList.size()];
-        ringtonesArray = ringtonesList.toArray(ringtonesArray);
+
+        final Field[] rawFiles = RingtoneHelper.getListOfRawFiles();
+        String[] ringtonesArray = new String[rawFiles.length];
+        for(int count=0; count < rawFiles.length; count++){
+            ringtonesArray[count] = rawFiles[count].getName();
+            //Log.i("Raw Asset: ", rawFiles[count].getName());
+        }
+
+
 
         //String[] singleChoiceItems = {"1","2"};
                 //getResources().getStringArray(R.array.dialog_single_choice_array);
@@ -143,8 +140,22 @@ public class MainActivity extends AppCompatActivity {
                 .setSingleChoiceItems(ringtonesArray, itemSelected, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int selectedIndex) {
+                        if(mPlayer !=null && mPlayer.isPlaying()){
+                            mPlayer.stop();
+                        }
+
                         ListView lv = ((AlertDialog)dialogInterface).getListView();
                         lv.setTag(new Integer(selectedIndex));
+                        //play it
+                        int resourceID =0;
+                        try {
+                            resourceID=rawFiles[selectedIndex].getInt(rawFiles[selectedIndex]);
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+                        mPlayer = MediaPlayer.create(MainActivity.this, resourceID);
+                        mPlayer.start();
+
                     }
                 })
                 .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -155,6 +166,16 @@ public class MainActivity extends AppCompatActivity {
                         if(selected != null) {
                             // do something interesting
                             whichRingTone.setText("Chosen: " + finalRingtonesArray[selected]);
+                            if(mPlayer !=null && mPlayer.isPlaying()){
+                                mPlayer.stop();
+                            }
+                            int resourceID =0;
+                            try {
+                                resourceID=rawFiles[selected].getInt(rawFiles[selected]);
+                                selectedRingtoneResousrceId= resourceID;
+                            } catch (IllegalAccessException e) {
+                                e.printStackTrace();
+                            }
                         }
 
                     }
@@ -163,8 +184,18 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         whichRingTone.setText("No ringtone chosen");
+                        if(mPlayer !=null && mPlayer.isPlaying()){
+                            mPlayer.stop();
+                        }
                     }
                 })
                 .show();
+    }
+
+    public void onDestroy() {
+
+        mPlayer.stop();
+        super.onDestroy();
+
     }
 }
