@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private List<Boolean> savedListStatus;
     private int currentDialogMultiChooseIndex = 0;
     protected String[] weekdaysArray = {"Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
+    TextView tvRepeatDays;
 
 
     public static MainActivity instance() {
@@ -98,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
                 showDayChooserDialog();
             }
         });
+        tvRepeatDays = findViewById(R.id.tvdays);
     }
 
     public void onToggleClicked(View view) {
@@ -294,10 +296,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveMapToList(HashMap<String, Boolean> map) {
+        tvRepeatDays.setText("");
         for(int ij=0 ; ij<7; ij++)
         {
             savedListStatus.set(ij,map.get(weekdaysArray[ij]));
+            if(map.get(weekdaysArray[ij])){
+                if(tvRepeatDays.getText().toString().length() ==0){
+                    tvRepeatDays.setText( weekdaysArray[ij]);
+                }
+                else
+                {
+                    tvRepeatDays.setText(tvRepeatDays.getText().toString() + "," + weekdaysArray[ij]);
+                }
+
+            }
         }
+        if(tvRepeatDays.getText().toString().length() == 0)
+            tvRepeatDays.setText("None");
     }
 
 
