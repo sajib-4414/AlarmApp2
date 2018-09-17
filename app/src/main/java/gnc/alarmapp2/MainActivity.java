@@ -18,12 +18,14 @@ import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -42,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private int currentDialogMultiChooseIndex = 0;
     protected String[] weekdaysArray = {"Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
     TextView tvRepeatDays;
+    private AtomicInteger incrementalAlarmID;
 
 
     public static MainActivity instance() {
@@ -58,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        incrementalAlarmID = new AtomicInteger();
 
         savedListStatus= new ArrayList<>();
         for(int i = 0;i<7;i++) {
@@ -103,23 +107,86 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onToggleClicked(View view) {
-        if (((SwitchCompat) view).isChecked()) {
-            Log.d("MyActivity", "Alarm On");
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(Calendar.HOUR_OF_DAY, alarmTimePicker.getCurrentHour());
-            calendar.set(Calendar.MINUTE, alarmTimePicker.getCurrentMinute());
-            Intent myIntent = new Intent(MainActivity.this, AlarmReceiver.class);
-            pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, myIntent, 0);
-            alarmManager.set(AlarmManager.RTC, calendar.getTimeInMillis(), pendingIntent);
-        } else {
-            alarmManager.cancel(pendingIntent);
-            TriggerAlarm("");
-            if(mPlayer !=null && mPlayer.isPlaying()){
-                mPlayer.stop();
+        if(repeatbox.isChecked())
+        {
+            //set repeat alarm
+
+            //turning on
+            if (((SwitchCompat) view).isChecked()) {
+                Log.d("MyActivity", "Alarm On");
+                setAlarmForDay(alarmTimePicker.getCurrentHour(), alarmTimePicker.getCurrentMinute());
+                Toast.makeText(getApplicationContext(),"Alarm is set at " + alarmTimePicker.getCurrentHour() + ":" +
+                        alarmTimePicker.getCurrentMinute() + "on" + tvRepeatDays.getText().toString(), Toast.LENGTH_SHORT).show();
+                //Calendar calendar = Calendar.getInstance();
+                //calendar.set(Calendar.HOUR_OF_DAY, alarmTimePicker.getCurrentHour());
+               // calendar.set(Calendar.MINUTE, alarmTimePicker.getCurrentMinute());
+               // Intent myIntent = new Intent(MainActivity.this, AlarmReceiver.class);
+                //pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, myIntent, 0);
+               // alarmManager.set(AlarmManager.RTC, calendar.getTimeInMillis(), pendingIntent);
             }
 
-            Log.d("MyActivity", "Alarm Off");
+            //turning off
+            else {
+                alarmManager.cancel(pendingIntent);
+                TriggerAlarm("");
+                if(mPlayer !=null && mPlayer.isPlaying()){
+                    mPlayer.stop();
+                }
+
+                Log.d("MyActivity", "Alarm Off");
+            }
         }
+        else
+        {
+            //set unset single alarm
+            if (((SwitchCompat) view).isChecked()) {
+                Log.d("MyActivity", "Alarm On");
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.HOUR_OF_DAY, alarmTimePicker.getCurrentHour());
+                calendar.set(Calendar.MINUTE, alarmTimePicker.getCurrentMinute());
+                Intent myIntent = new Intent(MainActivity.this, AlarmReceiver.class);
+                pendingIntent = PendingIntent.getBroadcast(MainActivity.this, incrementalAlarmID.incrementAndGet(), myIntent, 0);
+                alarmManager.set(AlarmManager.RTC, calendar.getTimeInMillis(), pendingIntent);
+                Toast.makeText(getApplicationContext(),"Alarm is set at " + alarmTimePicker.getCurrentHour() + ":" +
+                        alarmTimePicker.getCurrentMinute() , Toast.LENGTH_SHORT).show();
+            } else {
+                alarmManager.cancel(pendingIntent);
+                TriggerAlarm("");
+                if(mPlayer !=null && mPlayer.isPlaying()){
+                    mPlayer.stop();
+                }
+
+                Log.d("MyActivity", "Alarm Off");
+            }
+        }
+
+    }
+    public void setAlarmForDay(int hours, int minutes)
+    {
+        for(int i=0; i<7; i++)
+        {
+            if(savedListStatus.get(i))
+            {
+                forday(i, hours, minutes);
+            }
+        }
+    }
+    public void forday(int dayNo, int hours, int minutes) {
+        if(dayNo == 0)
+            dayNo = 7;
+
+        //saturday = 7;
+        Calendar calSet = Calendar.getInstance();
+        calSet.set(Calendar.DAY_OF_WEEK, dayNo);
+        calSet.set(Calendar.HOUR_OF_DAY, hours);
+        calSet.set(Calendar.MINUTE, minutes);
+        calSet.set(Calendar.SECOND, 0);
+        calSet.set(Calendar.MILLISECOND, 0);
+
+        Intent myIntent = new Intent(MainActivity.this, AlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(MainActivity.this, incrementalAlarmID.incrementAndGet(), myIntent, 0);
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
+                calSet.getTimeInMillis(), 24 * 7 * 60 * 60 * 1000, pendingIntent);
     }
 
     public void TriggerAlarm(String alarmText) {
@@ -323,5 +390,12 @@ public class MainActivity extends AppCompatActivity {
                 return true;
         }
         return false;
+    }
+    private void cancelAlarm(int alarmId){
+        Intent myIntent = new Intent(MainActivity.this, AlarmReceiver.class);
+        PendingIntent pendingIntentToCancel = PendingIntent.getActivity(MainActivity.this,
+                alarmId, myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        pendingIntent.cancel();
+        alarmManager.cancel(pendingIntentToCancel);
     }
 }
