@@ -48,6 +48,37 @@
             android:layout_centerHorizontal="true"
             android:layout_below="@+id/ringchoserlayout"
             android:onClick="onToggleClicked" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/repeat_layout"
+            android:layout_below="@+id/alarmToggle"
+            >
+
+
+            <CheckBox
+                android:id="@+id/repeat_checkbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="set repeat"/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Repeats on: "/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="None"/>
+            </LinearLayout>
+
+
+
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
@@ -57,7 +88,7 @@
             android:id="@+id/alarmText"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="20dp"
-            android:layout_below="@+id/alarmToggle" />
+            android:layout_below="@+id/repeat_layout" />
         <Switch
             android:id="@+id/soundSwitch"
             android:layout_below="@+id/alarmText"
