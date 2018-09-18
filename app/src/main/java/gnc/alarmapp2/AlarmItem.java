@@ -10,4 +10,5 @@ public class AlarmItem {
     Boolean willVibrate;
     int alarmRingToneResouceId;
     String alarmRingToneName;
+    boolean isAlarmOn;
 }
