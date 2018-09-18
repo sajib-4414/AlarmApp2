@@ -12,12 +12,12 @@ import java.util.List;
 
 public class AlarmListRecyclerAdapter extends RecyclerView.Adapter<AlarmListRecyclerAdapter.ViewHolder> {
 
-    private List<String> mData;
+    private List<AlarmItem> mData;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
 
     // data is passed into the constructor
-    AlarmListRecyclerAdapter(Context context, List<String> data) {
+    AlarmListRecyclerAdapter(Context context, List<AlarmItem> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
     }
@@ -32,7 +32,7 @@ public class AlarmListRecyclerAdapter extends RecyclerView.Adapter<AlarmListRecy
     // binds the data to the TextView in each row
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        String animal = mData.get(position);
+        String animal = mData.get(position).label;
         holder.myTextView.setText(animal);
     }
 
@@ -60,7 +60,7 @@ public class AlarmListRecyclerAdapter extends RecyclerView.Adapter<AlarmListRecy
     }
 
     // convenience method for getting data at click position
-    String getItem(int id) {
+    AlarmItem getItem(int id) {
         return mData.get(id);
     }
 

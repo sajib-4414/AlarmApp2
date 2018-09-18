@@ -21,6 +21,8 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -46,6 +48,8 @@ public class AlarmAddActivity extends AppCompatActivity {
     TextView tvRepeatDays;
     private AtomicInteger incrementalAlarmID;
     EditText alarmNameField;
+    private Gson gson;
+    Button btnCreateAlarm;
 
 
     public static AlarmAddActivity instance() {
@@ -62,6 +66,7 @@ public class AlarmAddActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.alarm_add_activity);
+        gson = new Gson();
         incrementalAlarmID = new AtomicInteger();
 
         savedListStatus= new ArrayList<>();
@@ -106,6 +111,35 @@ public class AlarmAddActivity extends AppCompatActivity {
         });
         tvRepeatDays = findViewById(R.id.tvdays);
         alarmNameField = findViewById(R.id.tvAlarmName);
+        btnCreateAlarm = findViewById(R.id.btnCreate);
+        btnCreateAlarm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.HOUR_OF_DAY, alarmTimePicker.getCurrentHour());
+                calendar.set(Calendar.MINUTE, alarmTimePicker.getCurrentMinute());
+                int alarmId = incrementalAlarmID.incrementAndGet();
+                Intent oneTimeAlarmIntent = new Intent(AlarmAddActivity.this, AlarmReceiver.class);
+                oneTimeAlarmIntent.putExtra("alarm-id", alarmId);
+                pendingIntent = PendingIntent.getBroadcast(AlarmAddActivity.this, alarmId, oneTimeAlarmIntent, 0);
+                alarmManager.set(AlarmManager.RTC, calendar.getTimeInMillis(), pendingIntent);
+                Toast.makeText(getApplicationContext(),"One time Alarm is set at " + alarmTimePicker.getCurrentHour() + ":" + alarmTimePicker.getCurrentMinute() , Toast.LENGTH_SHORT).show();
+                AlarmItem item = new AlarmItem();
+                item.id = alarmId;
+                item.label = alarmNameField.getText().toString();
+                item.whichDaysToRepeat = null;
+                item.willRepeat = false;
+                item.willVibrate = false;
+                //save now
+                List<AlarmItem> listAlarm = new ArrayList<>();
+                listAlarm.add(item);
+                String val = gson.toJson(listAlarm);
+                SharedPrefHelper.setPreference(AlarmAddActivity.this, AppConstant.KEY_ALARM_ITEM_LIST, val);
+                Intent intent = new Intent(AlarmAddActivity.this, AlarmListMainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+            }
+        });
     }
 
     public void onToggleClicked(View view) {
@@ -143,22 +177,29 @@ public class AlarmAddActivity extends AppCompatActivity {
             //set unset single alarm
             if (((SwitchCompat) view).isChecked()) {
                 Log.d("MyActivity", "Alarm On");
-                Calendar calendar = Calendar.getInstance();
-                calendar.set(Calendar.HOUR_OF_DAY, alarmTimePicker.getCurrentHour());
-                calendar.set(Calendar.MINUTE, alarmTimePicker.getCurrentMinute());
-                int alarmId = incrementalAlarmID.incrementAndGet();
-                Intent oneTimeAlarmIntent = new Intent(AlarmAddActivity.this, AlarmReceiver.class);
-                oneTimeAlarmIntent.putExtra("alarm-id", alarmId);
-                pendingIntent = PendingIntent.getBroadcast(AlarmAddActivity.this, alarmId, oneTimeAlarmIntent, 0);
-                alarmManager.set(AlarmManager.RTC, calendar.getTimeInMillis(), pendingIntent);
-                Toast.makeText(getApplicationContext(),"One time Alarm is set at " + alarmTimePicker.getCurrentHour() + ":" + alarmTimePicker.getCurrentMinute() , Toast.LENGTH_SHORT).show();
-                AlarmItem item = new AlarmItem();
-                item.id = alarmId;
-                item.label = "";
-                item.whichDaysToRepeat = null;
-                item.willRepeat = false;
-                item.willVibrate = false;
-                //save now
+//                Calendar calendar = Calendar.getInstance();
+//                calendar.set(Calendar.HOUR_OF_DAY, alarmTimePicker.getCurrentHour());
+//                calendar.set(Calendar.MINUTE, alarmTimePicker.getCurrentMinute());
+//                int alarmId = incrementalAlarmID.incrementAndGet();
+//                Intent oneTimeAlarmIntent = new Intent(AlarmAddActivity.this, AlarmReceiver.class);
+//                oneTimeAlarmIntent.putExtra("alarm-id", alarmId);
+//                pendingIntent = PendingIntent.getBroadcast(AlarmAddActivity.this, alarmId, oneTimeAlarmIntent, 0);
+//                alarmManager.set(AlarmManager.RTC, calendar.getTimeInMillis(), pendingIntent);
+//                Toast.makeText(getApplicationContext(),"One time Alarm is set at " + alarmTimePicker.getCurrentHour() + ":" + alarmTimePicker.getCurrentMinute() , Toast.LENGTH_SHORT).show();
+//                AlarmItem item = new AlarmItem();
+//                item.id = alarmId;
+//                item.label = "";
+//                item.whichDaysToRepeat = null;
+//                item.willRepeat = false;
+//                item.willVibrate = false;
+//                //save now
+//                List<AlarmItem> listAlarm = new ArrayList<>();
+//                listAlarm.add(item);
+//                String val = gson.toJson(listAlarm);
+//                SharedPrefHelper.setPreference(this, AppConstant.KEY_ALARM_ITEM_LIST, val);
+
+
+
             } else {
                 alarmManager.cancel(pendingIntent);
                 TriggerAlarm("");
@@ -297,7 +338,8 @@ public class AlarmAddActivity extends AppCompatActivity {
 
     public void onDestroy() {
 
-        mPlayer.stop();
+        if(mPlayer !=null)
+            mPlayer.stop();
         super.onDestroy();
 
     }
