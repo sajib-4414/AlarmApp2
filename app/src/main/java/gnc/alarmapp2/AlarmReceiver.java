@@ -1,20 +1,22 @@
 package gnc.alarmapp2;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.support.v4.content.WakefulBroadcastReceiver;
 
-public class AlarmReceiver extends WakefulBroadcastReceiver {
+import static android.support.v4.content.WakefulBroadcastReceiver.startWakefulService;
+
+public class AlarmReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(final Context context, Intent intent) {
         //this will update the UI with message
-        MainActivity inst = MainActivity.instance();
+        AlarmAddActivity inst = AlarmAddActivity.instance();
 
 
         //this will sound the alarm tone
@@ -33,5 +35,8 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
                 AlarmService.class.getName());
         startWakefulService(context, (intent.setComponent(comp)));
         setResultCode(Activity.RESULT_OK);
+
+        Intent newIntent = new Intent(context, AlarmRingingScreen.class);
+        context.startActivity(newIntent);
     }
 }

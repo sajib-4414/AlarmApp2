@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -27,12 +28,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class MainActivity extends AppCompatActivity {
+public class AlarmAddActivity extends AppCompatActivity {
 
     AlarmManager alarmManager;
     private PendingIntent pendingIntent;
     private TimePicker alarmTimePicker;
-    private static MainActivity inst;
+    private static AlarmAddActivity inst;
     private TextView alarmTextView, whichRingTone;
     private Switch soundSwitch;
     //private Ringtone ringtone;
@@ -44,9 +45,10 @@ public class MainActivity extends AppCompatActivity {
     protected String[] weekdaysArray = {"Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
     TextView tvRepeatDays;
     private AtomicInteger incrementalAlarmID;
+    EditText alarmNameField;
 
 
-    public static MainActivity instance() {
+    public static AlarmAddActivity instance() {
         return inst;
     }
 
@@ -59,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.alarm_add_activity);
         incrementalAlarmID = new AtomicInteger();
 
         savedListStatus= new ArrayList<>();
@@ -103,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         tvRepeatDays = findViewById(R.id.tvdays);
+        alarmNameField = findViewById(R.id.tvAlarmName);
     }
 
     public void onToggleClicked(View view) {
@@ -119,8 +122,8 @@ public class MainActivity extends AppCompatActivity {
                 //Calendar calendar = Calendar.getInstance();
                 //calendar.set(Calendar.HOUR_OF_DAY, alarmTimePicker.getCurrentHour());
                // calendar.set(Calendar.MINUTE, alarmTimePicker.getCurrentMinute());
-               // Intent myIntent = new Intent(MainActivity.this, AlarmReceiver.class);
-                //pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, myIntent, 0);
+               // Intent myIntent = new Intent(AlarmAddActivity.this, AlarmReceiver.class);
+                //pendingIntent = PendingIntent.getBroadcast(AlarmAddActivity.this, 0, myIntent, 0);
                // alarmManager.set(AlarmManager.RTC, calendar.getTimeInMillis(), pendingIntent);
             }
 
@@ -143,11 +146,19 @@ public class MainActivity extends AppCompatActivity {
                 Calendar calendar = Calendar.getInstance();
                 calendar.set(Calendar.HOUR_OF_DAY, alarmTimePicker.getCurrentHour());
                 calendar.set(Calendar.MINUTE, alarmTimePicker.getCurrentMinute());
-                Intent myIntent = new Intent(MainActivity.this, AlarmReceiver.class);
-                pendingIntent = PendingIntent.getBroadcast(MainActivity.this, incrementalAlarmID.incrementAndGet(), myIntent, 0);
+                int alarmId = incrementalAlarmID.incrementAndGet();
+                Intent oneTimeAlarmIntent = new Intent(AlarmAddActivity.this, AlarmReceiver.class);
+                oneTimeAlarmIntent.putExtra("alarm-id", alarmId);
+                pendingIntent = PendingIntent.getBroadcast(AlarmAddActivity.this, alarmId, oneTimeAlarmIntent, 0);
                 alarmManager.set(AlarmManager.RTC, calendar.getTimeInMillis(), pendingIntent);
-                Toast.makeText(getApplicationContext(),"Alarm is set at " + alarmTimePicker.getCurrentHour() + ":" +
-                        alarmTimePicker.getCurrentMinute() , Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(),"One time Alarm is set at " + alarmTimePicker.getCurrentHour() + ":" + alarmTimePicker.getCurrentMinute() , Toast.LENGTH_SHORT).show();
+                AlarmItem item = new AlarmItem();
+                item.id = alarmId;
+                item.label = "";
+                item.whichDaysToRepeat = null;
+                item.willRepeat = false;
+                item.willVibrate = false;
+                //save now
             } else {
                 alarmManager.cancel(pendingIntent);
                 TriggerAlarm("");
@@ -182,8 +193,8 @@ public class MainActivity extends AppCompatActivity {
         calSet.set(Calendar.SECOND, 0);
         calSet.set(Calendar.MILLISECOND, 0);
 
-        Intent myIntent = new Intent(MainActivity.this, AlarmReceiver.class);
-        pendingIntent = PendingIntent.getBroadcast(MainActivity.this, incrementalAlarmID.incrementAndGet(), myIntent, 0);
+        Intent myIntent = new Intent(AlarmAddActivity.this, AlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(AlarmAddActivity.this, incrementalAlarmID.incrementAndGet(), myIntent, 0);
         alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
                 calSet.getTimeInMillis(), 24 * 7 * 60 * 60 * 1000, pendingIntent);
     }
@@ -205,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
                 soundSwitch.setVisibility(View.VISIBLE);
                 //play it
 
-                mPlayer = MediaPlayer.create(MainActivity.this, selectedRingtoneResousrceId);
+                mPlayer = MediaPlayer.create(AlarmAddActivity.this, selectedRingtoneResousrceId);
                 mPlayer.start();
             }
         }
@@ -245,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
                         } catch (IllegalAccessException e) {
                             e.printStackTrace();
                         }
-                        mPlayer = MediaPlayer.create(MainActivity.this, resourceID);
+                        mPlayer = MediaPlayer.create(AlarmAddActivity.this, resourceID);
                         mPlayer.start();
 
                     }
@@ -391,8 +402,8 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
     private void cancelAlarm(int alarmId){
-        Intent myIntent = new Intent(MainActivity.this, AlarmReceiver.class);
-        PendingIntent pendingIntentToCancel = PendingIntent.getActivity(MainActivity.this,
+        Intent myIntent = new Intent(AlarmAddActivity.this, AlarmReceiver.class);
+        PendingIntent pendingIntentToCancel = PendingIntent.getActivity(AlarmAddActivity.this,
                 alarmId, myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         pendingIntent.cancel();
         alarmManager.cancel(pendingIntentToCancel);

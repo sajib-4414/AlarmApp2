@@ -8,4 +8,6 @@ public class AlarmItem {
     ArrayList<String> whichDaysToRepeat;
     Boolean willRepeat;
     Boolean willVibrate;
+    int alarmRingToneResouceId;
+    String alarmRingToneName;
 }

@@ -10,7 +10,7 @@
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
         android:paddingBottom="@dimen/activity_vertical_margin"
-        tools:context=".MainActivity">
+        tools:context=".AlarmAddActivity">
 
         <TimePicker
             android:layout_width="wrap_content"
@@ -18,10 +18,26 @@
             android:id="@+id/alarmTimePicker"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true" />
+        <LinearLayout
+            android:id="@+id/labellayout"
+            android:layout_below="@+id/alarmTimePicker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Name: "/>
+            <EditText
+                android:id="@+id/tvAlarmName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLength="50"/>
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/ringchoserlayout"
-            android:layout_below="@+id/alarmTimePicker"
+            android:layout_below="@+id/labellayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -80,6 +96,13 @@
 
 
         </LinearLayout>
+        <Button
+            android:id="@+id/btnCreate"
+            android:layout_below="@+id/repeat_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Create alarm"
+            android:textAllCaps="false"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -89,7 +112,7 @@
             android:id="@+id/alarmText"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="20dp"
-            android:layout_below="@+id/repeat_layout" />
+            android:layout_below="@+id/btnCreate" />
         <Switch
             android:id="@+id/soundSwitch"
             android:layout_below="@+id/alarmText"
