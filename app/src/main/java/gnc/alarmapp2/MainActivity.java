@@ -41,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
     MediaPlayer mPlayer;
     CheckBox repeatbox;
     private List<Boolean> savedListStatus;
-    private int currentDialogMultiChooseIndex = 0;
     protected String[] weekdaysArray = {"Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
     TextView tvRepeatDays;
     private AtomicInteger incrementalAlarmID;
